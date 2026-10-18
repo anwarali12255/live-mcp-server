@@ -10,8 +10,19 @@ EMAIL = "24f2006704@ds.study.iitm.ac.in"
 
 request_headers = ContextVar("request_headers", default={})
 
-mcp = FastMCP("Exam Challenge Server", stateless_http=True)
-
+mcp = FastMCP(
+    "Exam Challenge Server",
+    stateless_http=True,
+    transport_security=TransportSecuritySettings(
+        allowed_hosts=[
+            "live-mcp-server-1-fvb7.onrender.com",
+            "live-mcp-server-1-fvb7.onrender.com:*",
+        ],
+        allowed_origins=[
+            "https://live-mcp-server-1-fvb7.onrender.com",
+        ],
+    ),
+)
 
 class HeaderMiddleware:
     def __init__(self, app):
@@ -47,19 +58,7 @@ def solve_challenge() -> str:
     return hashlib.sha256(message).hexdigest()[:16]
 
 
-app = HeaderMiddleware(
-    mcp.streamable_http_app(
-        transport_security=TransportSecuritySettings(
-            allowed_hosts=[
-                "live-mcp-server-1-fvb7.onrender.com",
-                "live-mcp-server-1-fvb7.onrender.com:*",
-            ],
-            allowed_origins=[
-                "https://live-mcp-server-1-fvb7.onrender.com",
-            ],
-        )
-    )
-)
+app = HeaderMiddleware(mcp.streamable_http_app())
 
 if __name__ == "__main__":
     uvicorn.run(
