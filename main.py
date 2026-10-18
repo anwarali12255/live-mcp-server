@@ -4,6 +4,7 @@ from contextvars import ContextVar
 
 import uvicorn
 from mcp.server.fastmcp import FastMCP
+from mcp.server.transport_security import TransportSecuritySettings
 
 EMAIL = "24f2006704@ds.study.iitm.ac.in"
 
@@ -46,7 +47,19 @@ def solve_challenge() -> str:
     return hashlib.sha256(message).hexdigest()[:16]
 
 
-app = HeaderMiddleware(mcp.streamable_http_app())
+app = HeaderMiddleware(
+    mcp.streamable_http_app(
+        transport_security=TransportSecuritySettings(
+            allowed_hosts=[
+                "live-mcp-server-1-fvb7.onrender.com",
+                "live-mcp-server-1-fvb7.onrender.com:*",
+            ],
+            allowed_origins=[
+                "https://live-mcp-server-1-fvb7.onrender.com",
+            ],
+        )
+    )
+)
 
 if __name__ == "__main__":
     uvicorn.run(
